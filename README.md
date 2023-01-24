@@ -1,24 +1,24 @@
-# sequence_diff
+# gap
 
-[![Package Version](https://img.shields.io/hexpm/v/sequence_diff)](https://hex.pm/packages/sequence_diff)
-[![Hex Docs](https://img.shields.io/badge/hex-docs-ffaff3)](https://hexdocs.pm/sequence_diff/)
+[![Package Version](https://img.shields.io/hexpm/v/gap)](https://hex.pm/packages/gap)
+[![Hex Docs](https://img.shields.io/badge/hex-docs-ffaff3)](https://hexdocs.pm/gap/)
 
-A Gleam project
+A Gleam library for comparing strings/lists and producing a textual (styled) representation of the differences.
 
-## Quick start
+A typical styled output from the comparison can look like this:
 
-```sh
-gleam run   # Run the project
-gleam test  # Run the tests
-gleam shell # Run an Erlang shell
-```
+<img src="TODO" alt="Image of two strings with highlighted differences" width="400vw">
+
+## Intro
+
+
 
 ## Installation
 
 If available on Hex this package can be added to your Gleam project:
 
 ```sh
-gleam add sequence_diff
+gleam add gap
 ```
 
-and its documentation can be found at <https://hexdocs.pm/sequence_diff>.
+and its documentation can be found at <https://hexdocs.pm/gap>.
