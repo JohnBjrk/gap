@@ -1,19 +1,19 @@
 import gleam/io
 import gleam/string
+import gleam/list
 import gleeunit
 import gleeunit/should
 import gleam_community/ansi
 import gap/styling.{
-  from_comparison, highlight, mk_generic_serializer, serialize,
-  to_styled_comparison,
+  All, Part, from_comparison, highlight, mk_generic_serializer, no_highlight,
+  serialize, to_styled_comparison,
 }
 import gap.{compare_lists, compare_strings, to_styled}
 import gap/comparison.{ListComparison, Match, NoMatch, StringComparison}
 import gap/styled_comparison.{StyledComparison}
 
 pub fn main() {
-  // gleeunit.main()
-  demo()
+  gleeunit.main()
 }
 
 pub type TestType {
@@ -119,7 +119,11 @@ pub fn compare_lists_custom_type_test() {
 pub fn styled_comparison_test() {
   compare_lists([1, 2, 3, 4, 5], [1, 3, 4, 5, 6])
   |> from_comparison()
-  |> highlight(fn(item) { ">" <> item <> "<" }, fn(item) { "#" <> item <> "#" })
+  |> highlight(
+    fn(item) { ">" <> item <> "<" },
+    fn(item) { "#" <> item <> "#" },
+    no_highlight,
+  )
   |> to_styled_comparison()
   |> should.equal(StyledComparison("[1, >2<, 3, 4, 5]", "[1, 3, 4, 5, #6#]"))
 }
@@ -127,7 +131,11 @@ pub fn styled_comparison_test() {
 pub fn styled_comparison_serializer_test() {
   compare_lists([1, 2, 3, 4, 5], [1, 3, 4, 5, 6])
   |> from_comparison()
-  |> highlight(fn(item) { ">" <> item <> "<" }, fn(item) { "#" <> item <> "#" })
+  |> highlight(
+    fn(item) { ">" <> item <> "<" },
+    fn(item) { "#" <> item <> "#" },
+    no_highlight,
+  )
   |> serialize(mk_generic_serializer(
     " :: ",
     fn(all) { "--> " <> all <> " <--" },
@@ -172,6 +180,7 @@ pub fn demo() {
     |> highlight(
       fn(item) { ansi.underline(ansi.magenta(item)) },
       fn(item) { ansi.cyan(item) },
+      no_highlight,
     )
     |> to_styled_comparison()
   io.println(comparison.first)
@@ -184,6 +193,7 @@ pub fn demo() {
     |> highlight(
       fn(item) { ansi.underline(ansi.magenta(item)) },
       fn(item) { ansi.cyan(item) },
+      no_highlight,
     )
     |> serialize(mk_generic_serializer(
       " and ",
@@ -228,7 +238,58 @@ pub fn demo() {
     |> highlight(
       fn(first) { ansi.cyan(first) },
       fn(second) { ansi.magenta(second) },
+      fn(matching) { matching },
     )
+    |> to_styled_comparison()
+  io.println(comparison.first)
+  io.println(comparison.second)
+  io.println("")
+
+  let comparison =
+    compare_lists(["one", "two", "three"], ["two", "two", "tree"])
+    |> from_comparison()
+    |> highlight(
+      fn(first) { first <> " was not found in other" },
+      fn(second) { second <> " was not found in other" },
+      fn(matching) { matching <> " was found in other" },
+    )
+    |> serialize(mk_generic_serializer(
+      ", and ",
+      fn(result) { "Comparing the lists gave the following result: " <> result },
+    ))
+    |> to_styled_comparison()
+  io.println(comparison.first)
+  io.println(comparison.second)
+  io.println("")
+
+  let comparison =
+    compare_lists(
+      [
+        "pub type Gap = List(EmptyString)", "", "pub type Traveler {",
+        "  OnTrain", "  OverGap(gap: Gap)", "  OnPlatform", "}",
+      ],
+      [
+        "pub type Traveler {", "  OnTrain", "  OverGap(gap: String)",
+        "  OnPlatform", "}",
+      ],
+    )
+    |> from_comparison()
+    |> highlight(
+      fn(first) { "+" <> first },
+      fn(second) { "-" <> second },
+      fn(matching) { " " <> matching },
+    )
+    |> serialize(fn(part) {
+      case part {
+        Part(acc, lines, highlight) ->
+          acc <> {
+            lines
+            |> list.map(fn(line) { highlight(line) })
+            |> string.join("\n")
+          } <> "\n"
+        All(result) -> result
+      }
+    })
     |> to_styled_comparison()
   io.println(comparison.first)
   io.println(comparison.second)

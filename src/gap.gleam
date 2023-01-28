@@ -11,8 +11,8 @@ import gap/comparison.{
 }
 import gap/styled_comparison.{StyledComparison}
 import gap/styling.{
-  first_highlight_default, from_comparison, highlight, second_highlight_default,
-  to_styled_comparison,
+  first_highlight_default, from_comparison, highlight, no_highlight,
+  second_highlight_default, to_styled_comparison,
 }
 
 type MatchedItem(a) =
@@ -38,7 +38,7 @@ type DiffMap(a) =
 pub fn to_styled(comparison: Comparison(a)) -> StyledComparison {
   comparison
   |> from_comparison()
-  |> highlight(first_highlight_default, second_highlight_default)
+  |> highlight(first_highlight_default, second_highlight_default, no_highlight)
   |> to_styled_comparison()
 }
 

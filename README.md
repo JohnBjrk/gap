@@ -112,6 +112,7 @@ compare_strings(
 |> highlight(
     fn(first) { ansi.cyan(first) },
     fn(second) { ansi.magenta(second) },
+    fn(matching) { matching },
 )
 |> to_styled_comparison()
 io.println(comparison.first)
@@ -121,3 +122,81 @@ io.println(comparison.second)
 This will output something similar to this
 
 <img src="https://github.com/JohnBjrk/gap/blob/main/static/example_diff_things.png?raw=true" alt="Image of two strings with highlighted differences" width="400vw">
+
+### Serialization
+
+Furthermore it is also possible to customize the styling by changing the way that the comparison is serialized. An easy way to do
+this is to use the utility function `mk_generic_serializer` which creates a serializer which some specific separator and a hook
+for surrounding the result with some content. Here is a somewhat contrived example
+
+```gleam
+let comparison =
+compare_lists(["one", "two", "three"], ["two", "two", "tree"])
+|> from_comparison()
+|> highlight(
+    fn(first) { first <> " was not found in other" },
+    fn(second) { second <> " was not found in other" },
+)
+|> serialize(mk_generic_serializer(
+    ", and ",
+    fn(result) { "Comparing the lists gave the following result: " <> result },
+))
+|> to_styled_comparison()
+io.println(comparison.first)
+io.println(comparison.second)
+// Comparing the lists gave the following result: "one" was not found in other, and "two" was found in other, and "three" was not found in other
+// Comparing the lists gave the following result: "two" was not found in other, and "two" was found in other, and "tree" was not found in other
+```
+
+### Custom serialization
+
+Serializers can of course have a custom implementation. The following example utilizes this together with custom highlighters,
+creating a patch-like output (this is not exactly the same as patch-format since that shows the changes in relation to the original - to do 
+that both lists of matching/non-matching lines would need to be processed together)
+
+```gleam
+let comparison =
+compare_lists(
+    [
+    "pub type Gap = List(EmptyString)", "", "pub type Traveler {",
+    "  OnTrain", "  OverGap(gap: Gap)", "  OnPlatform", "}",
+    ],
+    [
+    "pub type Traveler {", "  OnTrain", "  OverGap(gap: String)",
+    "  OnPlatform", "}",
+    ],
+)
+|> from_comparison()
+|> highlight(
+    fn(first) { "+" <> first },
+    fn(second) { "-" <> second },
+    fn(matching) { " " <> matching },
+)
+|> serialize(fn(part) {
+    case part {
+    Part(acc, lines, highlight) ->
+        acc <> {
+        lines
+        |> list.map(fn(line) { highlight(line) })
+        |> string.join("\n")
+        } <> "\n"
+    All(result) -> result
+    }
+})
+|> to_styled_comparison()
+io.println(comparison.first)
+io.println(comparison.second)
+// +pub type Gap = List(EmptyString)
+// +
+//  pub type Traveler {
+//    OnTrain
+// +  OverGap(gap: Gap)
+//    OnPlatform
+//  }
+// 
+//  pub type Traveler {
+//    OnTrain
+// -  OverGap(gap: String)
+//    OnPlatform
+//  }
+```

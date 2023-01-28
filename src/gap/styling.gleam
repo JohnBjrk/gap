@@ -11,7 +11,8 @@ import gap/styled_comparison.{StyledComparison}
 /// and should return a string representation that can be used to visually indicate that
 /// it is a non-matching item.
 ///
-/// The default implementation of the highlighters uses the `gleam_community/ansi` library
+/// The default implementation of the highlighters uses the 
+/// [gleam_community/ansi](https://hexdocs.pm/gleam_community_ansi/index.html) library
 /// to set a different color for the item, but any type if indication can be used as long
 /// as it returns a valid string
 pub type Highlighter =
@@ -32,6 +33,15 @@ pub type Part(a) {
 pub type Serializer(a) =
   fn(Part(a)) -> String
 
+/// Highlighters to use for indicating matches / non-matches
+///
+/// `first` is used to highlight non-matches in the first string/list
+/// `second` is used to highlight non-matches in the second string/list
+/// `matching` is used to highlight matches in the both strings/lists
+pub type Highlighters {
+  Highlighters(first: Highlighter, second: Highlighter, matching: Highlighter)
+}
+
 /// Styling of a `Comparison`
 ///
 /// See [from_comparison](#from_comparison)
@@ -39,8 +49,7 @@ pub opaque type Styling(a) {
   Styling(
     comparison: Comparison(a),
     serializer: Option(Serializer(a)),
-    first_highlight: Option(Highlighter),
-    second_highlight: Option(Highlighter),
+    highlight: Option(Highlighters),
   )
 }
 
@@ -49,23 +58,20 @@ pub opaque type Styling(a) {
 /// The `Styling` can be customized by adding highlighters and a serializer
 /// See [highlight](#highlight) and [serialize](#serialize)
 pub fn from_comparison(comparison: Comparison(a)) -> Styling(a) {
-  Styling(comparison, None, None, None)
+  Styling(comparison, None, None)
 }
 
 /// Add highlighters to the `Styling`
 ///
-/// The highlighters are used to mark the non-matching items in the
+/// The highlighters are used to mark the matching/non-matching items in the
 /// first/second list/string
 pub fn highlight(
   styling: Styling(a),
   first: Highlighter,
   second: Highlighter,
+  matching: Highlighter,
 ) -> Styling(a) {
-  Styling(
-    ..styling,
-    first_highlight: Some(first),
-    second_highlight: Some(second),
-  )
+  Styling(..styling, highlight: Some(Highlighters(first, second, matching)))
 }
 
 /// Add a serializer to the `Styling`
@@ -83,12 +89,13 @@ pub fn serialize(styling: Styling(a), serializer: Serializer(a)) -> Styling(a) {
 /// Creates a styled comparison using either custom highlighters/serializer if they where added or default
 /// highlighters and/or serializer
 pub fn to_styled_comparison(styling: Styling(a)) -> StyledComparison {
-  let first_highlight =
-    styling.first_highlight
-    |> option.unwrap(first_highlight_default)
-  let second_highlight =
-    styling.second_highlight
-    |> option.unwrap(second_highlight_default)
+  let highlight =
+    styling.highlight
+    |> option.unwrap(Highlighters(
+      first_highlight_default,
+      second_highlight_default,
+      no_highlight,
+    ))
   case styling.comparison {
     StringComparison(first, second) ->
       to_strings(
@@ -96,16 +103,18 @@ pub fn to_styled_comparison(styling: Styling(a)) -> StyledComparison {
         second,
         // NOTE: Using string serializer here because otherwise we need to have a specific string serializer on the styling
         string_serializer,
-        first_highlight,
-        second_highlight,
+        highlight.first,
+        highlight.second,
+        highlight.matching,
       )
     ListComparison(first, second) ->
       to_strings(
         first,
         second,
         option.unwrap(styling.serializer, generic_serializer),
-        first_highlight,
-        second_highlight,
+        highlight.first,
+        highlight.second,
+        highlight.matching,
       )
   }
 }
@@ -142,7 +151,8 @@ pub fn second_highlight_default(string: String) -> String {
   }
 }
 
-fn no_highlight(string: String) -> String {
+/// Default highlighter used for matching items
+pub fn no_highlight(string: String) -> String {
   string
 }
 
@@ -190,6 +200,7 @@ fn to_strings(
   serializer: Serializer(a),
   first_highlight: Highlighter,
   second_highlight: Highlighter,
+  no_highlight: Highlighter,
 ) -> StyledComparison {
   let first_styled =
     first
