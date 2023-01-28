@@ -20,6 +20,12 @@ pub type TestType {
   TestType(str: String, int: Int)
 }
 
+pub type Warning {
+  Please
+  Mind
+  The(what: String)
+}
+
 pub fn compare_strings_test() {
   compare_strings(
     "a test stirng with some letters",
@@ -201,9 +207,29 @@ pub fn demo() {
   let comparison =
     compare_strings(
       "lucy in the sky with diamonds",
-      "lucy is  the shy with diagrams",
+      "lucy is  the spy with diagrams",
     )
     |> to_styled()
+  io.println(comparison.first)
+  io.println(comparison.second)
+  io.println("")
+
+  compare_lists([Mind, The("Gap")], [Please, Mind, The("What")])
+
+  // |> io.debug()
+  io.println("")
+
+  let comparison =
+    compare_strings(
+      "Strings are made of smaller things",
+      "Things are maybe smaller string",
+    )
+    |> from_comparison()
+    |> highlight(
+      fn(first) { ansi.cyan(first) },
+      fn(second) { ansi.magenta(second) },
+    )
+    |> to_styled_comparison()
   io.println(comparison.first)
   io.println(comparison.second)
   io.println("")

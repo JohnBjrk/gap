@@ -116,6 +116,7 @@ pub fn first_highlight_default(string: String) -> String {
     " " ->
       string
       |> ansi.underline()
+      |> ansi.bold()
       |> ansi.green()
 
     _ ->
@@ -131,6 +132,7 @@ pub fn second_highlight_default(string: String) -> String {
     " " ->
       string
       |> ansi.underline()
+      |> ansi.bold()
       |> ansi.red()
 
     _ ->
