@@ -1,6 +1,7 @@
 import gleam/io
 import gleam/string
 import gleam/list
+import gleam/int
 import gleeunit
 import gleeunit/should
 import gleam_community/ansi
@@ -24,6 +25,25 @@ pub type Warning {
   Please
   Mind
   The(what: String)
+}
+
+pub fn performance_test() {
+  let list1 =
+    list.range(0, 249)
+    |> list.map(int.to_string)
+  let list2 =
+    list.range(0, 232)
+    |> list.map(int.to_string)
+
+  io.println("Comparing lists")
+  compare_lists(list1, list2)
+  io.println("Comparing strings")
+  compare_strings(
+    list1
+    |> string.join(""),
+    list2
+    |> string.join(""),
+  )
 }
 
 pub fn compare_strings_test() {

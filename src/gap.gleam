@@ -1,6 +1,14 @@
 import gleam/string
 import gleam/list
-import gleam/map.{Map}
+
+if javascript {
+  import util/mutable_map.{MutableMap as Map} as map
+}
+
+if erlang {
+  import gleam/map.{Map}
+}
+
 import gleam/result
 import gleam/option.{None, Option, Some}
 import gleam/int
