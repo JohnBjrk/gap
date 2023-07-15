@@ -60,28 +60,28 @@ pub fn compare_lists(
   first_sequence: List(a),
   second_sequence: List(a),
 ) -> Comparison(a) {
-  let matching_start =
+  let leading_matches =
     list.zip(first_sequence, second_sequence)
     |> list.take_while(fn(pair) { pair.0 == pair.1 })
     |> list.map(pair.first)
-  let num_matching_start = list.length(matching_start)
-  let matching_end =
+  let num_leading_matches = list.length(leading_matches)
+  let trailing_matches =
     list.zip(list.reverse(first_sequence), list.reverse(second_sequence))
     |> list.take_while(fn(pair) { pair.0 == pair.1 })
     |> list.map(pair.first)
     |> list.reverse()
-  let num_matching_end = list.length(matching_end)
+  let num_trailing_matches = list.length(trailing_matches)
   let first_sequence_to_diff =
     first_sequence
-    |> list.drop(num_matching_start)
+    |> list.drop(num_leading_matches)
     |> list.take(
-      list.length(first_sequence) - num_matching_start - num_matching_end,
+      list.length(first_sequence) - num_leading_matches - num_trailing_matches,
     )
   let second_sequence_to_diff =
     second_sequence
-    |> list.drop(num_matching_start)
+    |> list.drop(num_leading_matches)
     |> list.take(
-      list.length(second_sequence) - num_matching_start - num_matching_end,
+      list.length(second_sequence) - num_leading_matches - num_trailing_matches,
     )
 
   let diff_map =
@@ -143,34 +143,37 @@ pub fn compare_lists(
     }
   }
 
-  let #(first_segments_with_start_end, second_segments_with_start_end) = case
-    matching_start,
-    matching_end
-  {
+  let #(
+    first_segments_with_leading_trailing,
+    second_segments_with_leading_trailing,
+  ) = case leading_matches, trailing_matches {
     [], [] -> #(first_segments, second_segments)
-    [], matching_end -> #(
+    [], trailing_matches -> #(
       first_segments
-      |> append_and_merge(Match(matching_end)),
+      |> append_and_merge(Match(trailing_matches)),
       second_segments
-      |> append_and_merge(Match(matching_end)),
+      |> append_and_merge(Match(trailing_matches)),
     )
-    matching_start, [] -> #(
+    leading_matches, [] -> #(
       first_segments
-      |> prepend_and_merge(Match(matching_start)),
+      |> prepend_and_merge(Match(leading_matches)),
       second_segments
-      |> prepend_and_merge(Match(matching_start)),
+      |> prepend_and_merge(Match(leading_matches)),
     )
-    matching_start, matching_end -> #(
+    leading_matches, trailing_matches -> #(
       first_segments
-      |> prepend_and_merge(Match(matching_start))
-      |> append_and_merge(Match(matching_end)),
+      |> prepend_and_merge(Match(leading_matches))
+      |> append_and_merge(Match(trailing_matches)),
       second_segments
-      |> prepend_and_merge(Match(matching_start))
-      |> append_and_merge(Match(matching_end)),
+      |> prepend_and_merge(Match(leading_matches))
+      |> append_and_merge(Match(trailing_matches)),
     )
   }
 
-  ListComparison(first_segments_with_start_end, second_segments_with_start_end)
+  ListComparison(
+    first_segments_with_leading_trailing,
+    second_segments_with_leading_trailing,
+  )
 }
 
 fn prepend_and_merge(
@@ -207,28 +210,23 @@ fn append_and_merge(
     match
   {
     [], _ -> [match]
-    [Match(first_match), ..rest], Match(_) ->
-      [
-        Match(
-          first_match
-          |> list.append(match.item),
-        ),
-        ..rest
-      ]
-      |> list.reverse()
-    [NoMatch(first_match), ..rest], NoMatch(_) ->
-      [
-        NoMatch(
-          first_match
-          |> list.append(match.item),
-        ),
-        ..rest
-      ]
-      |> list.reverse()
-    matches, match ->
-      [match, ..matches]
-      |> list.reverse()
+    [Match(first_match), ..rest], Match(_) -> [
+      Match(
+        first_match
+        |> list.append(match.item),
+      ),
+      ..rest
+    ]
+    [NoMatch(first_match), ..rest], NoMatch(_) -> [
+      NoMatch(
+        first_match
+        |> list.append(match.item),
+      ),
+      ..rest
+    ]
+    matches, match -> [match, ..matches]
   }
+  |> list.reverse()
 }
 
 fn collect_matches(tracking, str: List(a), extract_fun) -> Segments(a) {
