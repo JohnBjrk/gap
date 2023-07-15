@@ -6,8 +6,9 @@ pub type Edit(a) {
   Ins(List(a))
 }
 
-type Path(a) =
-  #(Int, Int, List(a), List(a), List(Edit(a)))
+type Path(a) {
+  Path(x: Int, y: Int, list1: List(a), list2: List(a), edits: List(Edit(a)))
+}
 
 type Status(a) {
   Done(edits: List(Edit(a)))
@@ -20,7 +21,7 @@ type Status(a) {
 /// 
 /// Adapted from the implementation of "myers_difference" in Elixirs List module
 pub fn difference(list1: List(a), list2: List(a)) -> List(Edit(a)) {
-  let path = #(0, 0, list1, list2, [])
+  let path = Path(0, 0, list1, list2, [])
   find_script(0, list.length(list1) + list.length(list2), [path])
 }
 
@@ -37,7 +38,7 @@ fn find_script(envelope: Int, max: Int, paths: List(Path(a))) {
   }
 }
 
-fn compact_reverse(edits: List(Edit(a)), acc: List(Edit(a))) {
+fn compact_reverse(edits: List(Edit(a)), acc: List(Edit(a))) -> List(Edit(a)) {
   case edits, acc {
     [], acc -> acc
     [Eq(elem), ..rest], [Eq(result), ..acc_rest] ->
@@ -70,7 +71,11 @@ fn each_diagonal(
   }
 }
 
-fn proceed_path(diag: Int, limit: Int, paths: List(Path(a))) {
+fn proceed_path(
+  diag: Int,
+  limit: Int,
+  paths: List(Path(a)),
+) -> #(Path(a), List(Path(a))) {
   let neg_limit = -limit
   case diag, limit, paths {
     0, 0, [path] -> #(path, [])
@@ -83,7 +88,7 @@ fn proceed_path(diag: Int, limit: Int, paths: List(Path(a))) {
       paths,
     )
     _diag, _limit, [path1, path2, ..rest] -> {
-      case path1.1 > path2.1 {
+      case path1.y > path2.y {
         True -> #(move_right(path1), [path2, ..rest])
         False -> #(move_down(path2), [path2, ..rest])
       }
@@ -91,37 +96,27 @@ fn proceed_path(diag: Int, limit: Int, paths: List(Path(a))) {
   }
 }
 
-fn move_right(path: Path(a)) {
+fn move_right(path: Path(a)) -> Path(a) {
   case path {
-    #(x, y, list1, [elem, ..rest], edits) -> #(
-      x + 1,
-      y,
-      list1,
-      rest,
-      [Ins([elem]), ..edits],
-    )
-    #(x, y, list1, [], edits) -> #(x + 1, y, list1, [], edits)
+    Path(x, y, list1, [elem, ..rest], edits) ->
+      Path(x + 1, y, list1, rest, [Ins([elem]), ..edits])
+    Path(x, y, list1, [], edits) -> Path(x + 1, y, list1, [], edits)
   }
 }
 
-fn move_down(path: Path(a)) {
+fn move_down(path: Path(a)) -> Path(a) {
   case path {
-    #(x, y, [elem, ..rest], list2, edits) -> #(
-      x,
-      y + 1,
-      rest,
-      list2,
-      [Del([elem]), ..edits],
-    )
-    #(x, y, [], list2, edits) -> #(x, y + 1, [], list2, edits)
+    Path(x, y, [elem, ..rest], list2, edits) ->
+      Path(x, y + 1, rest, list2, [Del([elem]), ..edits])
+    Path(x, y, [], list2, edits) -> Path(x, y + 1, [], list2, edits)
   }
 }
 
 fn follow_snake(path: Path(a)) -> Status(a) {
   case path {
-    #(x, y, [elem1, ..rest1], [elem2, ..rest2], edits) if elem1 == elem2 ->
-      follow_snake(#(x + 1, y + 1, rest1, rest2, [Eq([elem1]), ..edits]))
-    #(_x, _y, [], [], edits) -> Done(edits)
+    Path(x, y, [elem1, ..rest1], [elem2, ..rest2], edits) if elem1 == elem2 ->
+      follow_snake(Path(x + 1, y + 1, rest1, rest2, [Eq([elem1]), ..edits]))
+    Path(_x, _y, [], [], edits) -> Done(edits)
     _ -> Cont(path)
   }
 }
