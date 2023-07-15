@@ -1,5 +1,6 @@
 import gleam/string
 import gleam/list
+import gleam/pair
 import gleam/map.{Map}
 import gleam/result
 import gleam/option.{None, Option, Some}
@@ -59,12 +60,36 @@ pub fn compare_lists(
   first_sequence: List(a),
   second_sequence: List(a),
 ) -> Comparison(a) {
-  let diff_map =
+  let matching_start =
+    list.zip(first_sequence, second_sequence)
+    |> list.take_while(fn(pair) { pair.0 == pair.1 })
+    |> list.map(pair.first)
+  let num_matching_start = list.length(matching_start)
+  let matching_end =
+    list.zip(list.reverse(first_sequence), list.reverse(second_sequence))
+    |> list.take_while(fn(pair) { pair.0 == pair.1 })
+    |> list.map(pair.first)
+    |> list.reverse()
+  let num_matching_end = list.length(matching_end)
+  let first_sequence_to_diff =
+    first_sequence
+    |> list.drop(num_matching_start)
+    |> list.take(
+      list.length(first_sequence) - num_matching_start - num_matching_end,
+    )
+  let second_sequence_to_diff =
     second_sequence
+    |> list.drop(num_matching_start)
+    |> list.take(
+      list.length(second_sequence) - num_matching_start - num_matching_end,
+    )
+
+  let diff_map =
+    second_sequence_to_diff
     |> list.index_fold(
       map.new(),
       fn(diff_map, item_second, index_second) {
-        first_sequence
+        first_sequence_to_diff
         |> list.index_fold(
           diff_map,
           fn(diff_map, item_first, index_first) {
@@ -79,34 +104,131 @@ pub fn compare_lists(
         )
       },
     )
-  let tracking =
-    back_track(
-      diff_map,
-      list.length(first_sequence) - 1,
-      list.length(second_sequence) - 1,
-      [],
-    )
-    |> map.from_list()
+  let #(first_segments, second_segments) = case
+    first_sequence_to_diff,
+    second_sequence_to_diff
+  {
+    [], [] -> #([], [])
+    first_matching, [] -> #([NoMatch(first_matching)], [])
+    [], second_matching -> #([], [NoMatch(second_matching)])
+    first_sequence_to_diff, second_sequence_to_diff -> {
+      let tracking =
+        back_track(
+          diff_map,
+          list.length(first_sequence_to_diff) - 1,
+          list.length(second_sequence_to_diff) - 1,
+          [],
+        )
+        |> map.from_list()
 
-  let first_segments =
-    collect_matches(
-      tracking,
-      first_sequence,
-      fn(key) {
-        let #(first, _) = key
-        first
-      },
+      let first_segments =
+        collect_matches(
+          tracking,
+          first_sequence_to_diff,
+          fn(key) {
+            let #(first, _) = key
+            first
+          },
+        )
+      let second_segments =
+        collect_matches(
+          tracking,
+          second_sequence_to_diff,
+          fn(key) {
+            let #(_, second) = key
+            second
+          },
+        )
+      #(first_segments, second_segments)
+    }
+  }
+
+  let #(first_segments_with_start_end, second_segments_with_start_end) = case
+    matching_start,
+    matching_end
+  {
+    [], [] -> #(first_segments, second_segments)
+    [], matching_end -> #(
+      first_segments
+      |> append_and_merge(Match(matching_end)),
+      second_segments
+      |> append_and_merge(Match(matching_end)),
     )
-  let second_segments =
-    collect_matches(
-      tracking,
-      second_sequence,
-      fn(key) {
-        let #(_, second) = key
-        second
-      },
+    matching_start, [] -> #(
+      first_segments
+      |> prepend_and_merge(Match(matching_start)),
+      second_segments
+      |> prepend_and_merge(Match(matching_start)),
     )
-  ListComparison(first_segments, second_segments)
+    matching_start, matching_end -> #(
+      first_segments
+      |> prepend_and_merge(Match(matching_start))
+      |> append_and_merge(Match(matching_end)),
+      second_segments
+      |> prepend_and_merge(Match(matching_start))
+      |> append_and_merge(Match(matching_end)),
+    )
+  }
+
+  ListComparison(first_segments_with_start_end, second_segments_with_start_end)
+}
+
+fn prepend_and_merge(
+  matches: List(Match(List(a))),
+  match: Match(List(a)),
+) -> List(Match(List(a))) {
+  case matches, match {
+    [], _ -> [match]
+    [Match(first_match), ..rest], Match(_) -> [
+      Match(
+        match.item
+        |> list.append(first_match),
+      ),
+      ..rest
+    ]
+    [NoMatch(first_match), ..rest], NoMatch(_) -> [
+      NoMatch(
+        match.item
+        |> list.append(first_match),
+      ),
+      ..rest
+    ]
+    matches, match -> [match, ..matches]
+  }
+}
+
+fn append_and_merge(
+  matches: List(Match(List(a))),
+  match: Match(List(a)),
+) -> List(Match(List(a))) {
+  case
+    matches
+    |> list.reverse(),
+    match
+  {
+    [], _ -> [match]
+    [Match(first_match), ..rest], Match(_) ->
+      [
+        Match(
+          first_match
+          |> list.append(match.item),
+        ),
+        ..rest
+      ]
+      |> list.reverse()
+    [NoMatch(first_match), ..rest], NoMatch(_) ->
+      [
+        NoMatch(
+          first_match
+          |> list.append(match.item),
+        ),
+        ..rest
+      ]
+      |> list.reverse()
+    matches, match ->
+      [match, ..matches]
+      |> list.reverse()
+  }
 }
 
 fn collect_matches(tracking, str: List(a), extract_fun) -> Segments(a) {
