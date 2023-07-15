@@ -1,6 +1,6 @@
 # Changelog
 
-# Unreleased
+## v0.6.0
 
 - Optimized by removing any leading/trailing matches
 - Fixed bug where comparison including an empty list would cause a crash
