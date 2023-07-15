@@ -15,6 +15,7 @@ import gap/styling.{
   first_highlight_default, from_comparison, highlight, no_highlight,
   second_highlight_default, to_styled_comparison,
 }
+import gap/myers.{Del, Edit, Eq as MyerEq, Ins}
 
 type MatchedItem(a) =
   #(#(Int, Int), a)
@@ -45,6 +46,8 @@ pub fn to_styled(comparison: Comparison(a)) -> StyledComparison {
 
 /// Compare two string and return a `StringComparison` which will be styled as string
 /// when passed to `to_styled`
+/// 
+/// Will use the default `myers` algorithm
 pub fn compare_strings(first: String, second: String) -> Comparison(String) {
   let comparison =
     compare_lists(string.to_graphemes(first), string.to_graphemes(second))
@@ -54,12 +57,78 @@ pub fn compare_strings(first: String, second: String) -> Comparison(String) {
   }
 }
 
+/// Compare two string and return a `StringComparison` which will be styled as string
+/// when passed to `to_styled`
+/// 
+/// Algorithm can be used to select either `myers` or the legacy `lcs` algorithm
+pub fn compare_strings_with_algorithm(
+  first: String,
+  second: String,
+  algorithm,
+) -> Comparison(String) {
+  let comparison =
+    algorithm(string.to_graphemes(first), string.to_graphemes(second))
+  case comparison {
+    ListComparison(first, second) -> StringComparison(first, second)
+    StringComparison(first, second) -> StringComparison(first, second)
+  }
+}
+
 /// Compare two lists and return a `ListComparison` which will be styled as list
 /// when passed to `to_styled`
+/// 
+/// Will use the default `myers` algorithm
 pub fn compare_lists(
   first_sequence: List(a),
   second_sequence: List(a),
 ) -> Comparison(a) {
+  myers(first_sequence, second_sequence)
+}
+
+/// Compare two lists and return a `ListComparison` which will be styled as list
+/// when passed to `to_styled`
+/// 
+/// Algorithm can be used to select either `myers` or the legacy `lcs` algorithm
+pub fn compare_lists_with_algorithm(
+  first_sequence: List(a),
+  second_sequence: List(a),
+  algorithm,
+) -> Comparison(a) {
+  algorithm(first_sequence, second_sequence)
+}
+
+/// An adapter for the the `myers` algorithm.
+/// Intended to be use as an argument to `compare_strings_with_algorithm` or
+/// `compare_lists_with_algorithm`
+pub fn myers(first_sequence: List(a), second_sequence: List(a)) -> Comparison(a) {
+  let edits = myers.difference(first_sequence, second_sequence)
+  edits
+  |> list.reverse()
+  |> list.fold(
+    ListComparison([], []),
+    fn(comparison: Comparison(a), edit: Edit(a)) {
+      case comparison {
+        ListComparison(first, second) -> {
+          case edit {
+            MyerEq(segment) ->
+              ListComparison(
+                [Match(segment), ..first],
+                [Match(segment), ..second],
+              )
+            Ins(segment) -> ListComparison(first, [NoMatch(segment), ..second])
+            Del(segment) -> ListComparison([NoMatch(segment), ..first], second)
+          }
+        }
+        StringComparison(..) -> comparison
+      }
+    },
+  )
+}
+
+/// An adapter for the the `lcs` (longest common subsequence) algorithm.
+/// Intended to be use as an argument to `compare_strings_with_algorithm` or
+/// `compare_lists_with_algorithm`
+pub fn lcs(first_sequence: List(a), second_sequence: List(a)) -> Comparison(a) {
   let leading_matches =
     list.zip(first_sequence, second_sequence)
     |> list.take_while(fn(pair) { pair.0 == pair.1 })
