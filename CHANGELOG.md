@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+
+- Adapted Elixir implementation of E. Myers diff algorithm (used by default)
+- Added API for selecting algorithm
+
 ## v0.6.0
 
 - Optimized by removing any leading/trailing matches
