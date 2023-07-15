@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## v0.7.0
 
 - Adapted Elixir implementation of E. Myers diff algorithm (used by default)
 - Added API for selecting algorithm
