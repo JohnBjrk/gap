@@ -1,11 +1,12 @@
-import gleam/option.{None, Option, Some}
+import gleam/option.{type Option, None, Some}
 import gleam/list
 import gleam/string
 import gleam_community/ansi
 import gap/comparison.{
-  Comparison, ListComparison, Match, NoMatch, Segments, StringComparison,
+  type Comparison, type Segments, ListComparison, Match, NoMatch,
+  StringComparison,
 }
-import gap/styled_comparison.{StyledComparison}
+import gap/styled_comparison.{type StyledComparison, StyledComparison}
 
 /// The `Highlighter`takes a string representation of the item that was not matching
 /// and should return a string representation that can be used to visually indicate that

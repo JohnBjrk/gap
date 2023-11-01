@@ -1,21 +1,22 @@
 import gleam/string
 import gleam/list
 import gleam/pair
-import gleam/map.{Map}
+import gleam/map.{type Map}
 import gleam/result
-import gleam/option.{None, Option, Some}
+import gleam/option.{type Option, None, Some}
 import gleam/int
 import gleam/order.{Eq, Gt, Lt}
 import gleam/set
 import gap/comparison.{
-  Comparison, ListComparison, Match, NoMatch, Segments, StringComparison,
+  type Comparison, type Match, type Segments, ListComparison, Match, NoMatch,
+  StringComparison,
 }
-import gap/styled_comparison.{StyledComparison}
+import gap/styled_comparison.{type StyledComparison}
 import gap/styling.{
   first_highlight_default, from_comparison, highlight, no_highlight,
   second_highlight_default, to_styled_comparison,
 }
-import gap/myers.{Del, Edit, Eq as MyerEq, Ins}
+import gap/myers.{type Edit, Del, Eq as MyerEq, Ins}
 
 type MatchedItem(a) =
   #(#(Int, Int), a)
