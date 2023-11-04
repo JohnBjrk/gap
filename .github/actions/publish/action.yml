@@ -1,0 +1,47 @@
+name: publish
+
+description: publish to hex.pm
+
+inputs:
+  gleam-version:
+    description: gleam version
+    required: false
+    default: 0.31.0
+  erlang-version:
+    description: erlang-otp version
+    required: false
+    default: 26.1.2
+  rebar-version:
+    description: rebar version
+    required: false
+    default: 3
+  hexpm-username:
+    description: hex.pm username
+    required: true
+  hexpm-password:
+    description: hex.pm password
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - uses: erlef/setup-beam@v1
+      with:
+        otp-version: ${{ inputs.erlang-version }}
+        gleam-version: ${{ inputs.gleam-version }}
+        rebar3-version: ${{ inputs.rebar-version }}
+    - uses: aslilac/setup@v1
+      with:
+        archives: |
+          https://mckayla.cloud/tomlq-linux-x64.tar.gz
+    - run: |
+        if [ "v$(tomlq version -f gleam.toml)" == "${{ github.ref_name }}" ]; then
+          exit 0
+        fi
+
+        echo "tag does not match version in gleam.toml, refusing to publish"
+        exit 1
+    - run: gleam publish -y
+      env:
+        HEXPM_USER: ${{ inputs.hexpm-username }}
+        HEXPM_PASS: ${{ inputs.hexpm-password }}
