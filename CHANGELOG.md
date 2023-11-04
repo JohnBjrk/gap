@@ -1,5 +1,9 @@
 # Changelog
 
+## v1.0.0
+
+- Updated for gleam 0.32
+
 ## v0.7.0
 
 - Adapted Elixir implementation of E. Myers diff algorithm (used by default)
