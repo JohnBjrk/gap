@@ -10,6 +10,8 @@ jobs:
     steps:
       - uses: actions/checkout@v3.2.0
       - uses: ./.github/actions/gleam_version
+        with:
+          fallback-version: ${{ vars.GLEAM_VERSION }}
   # test:
   #   runs-on: ubuntu-latest
   #   steps:
