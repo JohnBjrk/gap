@@ -1,6 +1,6 @@
 name: gleam_version
 
-description: get gleam version
+description: Get Gleam version as set in gleam.toml (min version).
 
 inputs:
   fallback-version:
