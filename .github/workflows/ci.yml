@@ -11,8 +11,8 @@ jobs:
       - uses: actions/checkout@v3.2.0
       - uses: ./.github/actions/gleam_version
         id: gleam-version
-        # with:
-        #   fallback-version: ${{ vars.GLEAM_VERSION }}
+        with:
+          fallback-version: ${{ vars.GLEAM_VERSION }}
       - run: |
           echo "GLEAM VERSION: $GLEAM_VERSION"
         env:

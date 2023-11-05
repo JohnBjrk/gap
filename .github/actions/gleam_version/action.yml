@@ -22,7 +22,7 @@ runs:
       id: raw-version
       shell: bash
       run: |
-        echo "VERSION_RAW=$(tomlq gleam -f scream.toml)" >> "$GITHUB_OUTPUT"
+        echo "VERSION_RAW=$(tomlq gleam -f gleam.toml)" >> "$GITHUB_OUTPUT"
     - name: Get version
       id: gleam-version
       shell: bash
