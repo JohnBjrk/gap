@@ -32,5 +32,10 @@ runs:
       shell: bash
       env:
         GLEAM_VERSION: ${{ steps.gleam-version.outputs.GLEAM_VERSION }}
+        REPO_GLEAM_VERSIOB: ${{ vars.GLEAM_VERSION }}
       run: |
-        echo "Gleam version: $GLEAM_VERSION"
+        if [[ -z $GLEAM_VERSION ]]; then
+          echo "Gleam version toml: $GLEAM_VERSION"
+        else
+          echo "Gleam version repo: $REPO_GLEAM_VERSION"
+        fi
