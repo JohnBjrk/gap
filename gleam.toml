@@ -1,5 +1,5 @@
 name = "gap"
-gleam = ">= 0.32.1"
+gleam = ">= 0.32.2"
 version = "1.0.0"
 description = "A Gleam library for comparing strings/lists and producing a textual (styled) representation of the differences."
 
