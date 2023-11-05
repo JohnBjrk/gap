@@ -4,8 +4,12 @@ description: get gleam version
 
 inputs:
   fallback-version:
-    description: fallback gleam version
+    description: "Fallback Gleam version"
     required: false
+outputs:
+  gleam-version:
+    description: "Gleam version"
+    value: ${{ steps.output-version.outputs.VERSION }}
 
 runs:
   using: composite
@@ -28,14 +32,18 @@ runs:
         echo "Raw version is: $RAW_VERSION"
         echo $RAW_VERSION | sed -nE "s/^.*([[:digit:]]+\.[[:digit:]]+(\.[[:digit:]]+))/\1/p" > gleam_version.txt
         echo "GLEAM_VERSION=$(cat gleam_version.txt)" >> "$GITHUB_OUTPUT"
-    - name: Print Version
+    - name: Output Version
+      id: output-version
       shell: bash
       env:
         GLEAM_VERSION: ${{ steps.gleam-version.outputs.GLEAM_VERSION }}
         FALLBACK_GLEAM_VERSION: ${{ inputs.fallback-version }}
       run: |
-        if [[ -z $GLEAM_VERSION ]]; then
-          echo "Gleam version toml: $GLEAM_VERSION"
+        if [[ ! -z $GLEAM_VERSION ]]; then
+          echo "VERSION=$GLEAM_VERSION" >> "$GITHUB_OUTPUT"
+        elif [[ ! -z $FALLBACK_GLEAM_VERSION ]]; then
+          echo "VERSION=$FALLBACK_GLEAM_VERSION" >> "$GITHUB_OUTPUT"
         else
-          echo "Gleam version repo: $FALLBACK_GLEAM_VERSION"
+          echo "Could not set Gleam version (failed to parse gleam.toml and no fallback provided)"
+          exit 1
         fi
