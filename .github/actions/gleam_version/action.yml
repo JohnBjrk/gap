@@ -18,12 +18,19 @@ runs:
       id: raw-version
       shell: bash
       run: |
-        tomlq gleam -f gleam.toml
         echo "VERSION_RAW=$(tomlq gleam -f gleam.toml)" >> "$GITHUB_OUTPUT"
     - name: Get version
-      id: version
+      id: gleam-version
       shell: bash
       env:
         RAW_VERSION: ${{ steps.raw-version.outputs.VERSION_RAW }}
       run: |
         echo "Raw version is: $RAW_VERSION"
+        echo $RAW_VERSION | sed -nE "s/^.*([[:digit:]]+\.[[:digit:]]+(\.[[:digit:]]+))/\1/p"
+        echo "GLEAM_VERSION=$($RAW_VERSION | sed -nE 's/^.*([[:digit:]]+\.[[:digit:]]+(\.[[:digit:]]+))/\1/p')" >> "$GITHUB_OUTPUT"
+    - name: Print Version
+      shell: bash
+      env:
+        GLEAM_VERSION: ${{ steps.gleam-version.outputs.GLEAM_VERSION }}
+      run: |
+        echo "Gleam version: $GLEAM_VERSION"
