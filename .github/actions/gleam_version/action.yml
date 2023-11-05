@@ -27,7 +27,7 @@ runs:
       run: |
         echo "Raw version is: $RAW_VERSION"
         echo $RAW_VERSION | sed -nE "s/^.*([[:digit:]]+\.[[:digit:]]+(\.[[:digit:]]+))/\1/p" > gleam_version.txt
-        echo "GLEAM_VERSION=$(cat gleam_version.txt))" >> "$GITHUB_OUTPUT"
+        echo "GLEAM_VERSION=$(cat gleam_version.txt)" >> "$GITHUB_OUTPUT"
     - name: Print Version
       shell: bash
       env:
