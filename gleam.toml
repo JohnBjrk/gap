@@ -15,4 +15,4 @@ gleam_stdlib = "~> 0.32"
 gleam_community_ansi = "~> 1.2"
 
 [dev-dependencies]
-gleeunit = "~> 0.10"
+gleeunit = "~> 1.0"
