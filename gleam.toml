@@ -1,5 +1,5 @@
 name = "gap"
-gleam = ">= 0.32.2"
+gleam = ">= 0.32.0"
 version = "1.0.0"
 description = "A Gleam library for comparing strings/lists and producing a textual (styled) representation of the differences."
 
@@ -15,4 +15,4 @@ gleam_stdlib = "~> 0.32"
 gleam_community_ansi = "~> 1.2"
 
 [dev-dependencies]
-gleeunit = "~> 0.10"
+gleeunit = "~> 1.0"
