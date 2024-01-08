@@ -1,7 +1,7 @@
 import gleam/string
 import gleam/list
 import gleam/pair
-import gleam/map.{type Map}
+import gleam/dict.{type Dict}
 import gleam/result
 import gleam/option.{type Option, None, Some}
 import gleam/int
@@ -26,7 +26,7 @@ type Score(a) {
 }
 
 type DiffMap(a) =
-  Map(#(Int, Int), Score(a))
+  Dict(#(Int, Int), Score(a))
 
 /// Creates a `StyledComparison` from `Comparison` using default values for
 /// highting and serialization.
@@ -105,25 +105,22 @@ pub fn myers(first_sequence: List(a), second_sequence: List(a)) -> Comparison(a)
   let edits = myers.difference(first_sequence, second_sequence)
   edits
   |> list.reverse()
-  |> list.fold(
-    ListComparison([], []),
-    fn(comparison: Comparison(a), edit: Edit(a)) {
-      case comparison {
-        ListComparison(first, second) -> {
-          case edit {
-            MyerEq(segment) ->
-              ListComparison(
-                [Match(segment), ..first],
-                [Match(segment), ..second],
-              )
-            Ins(segment) -> ListComparison(first, [NoMatch(segment), ..second])
-            Del(segment) -> ListComparison([NoMatch(segment), ..first], second)
-          }
+  |> list.fold(ListComparison([], []), fn(
+    comparison: Comparison(a),
+    edit: Edit(a),
+  ) {
+    case comparison {
+      ListComparison(first, second) -> {
+        case edit {
+          MyerEq(segment) ->
+            ListComparison([Match(segment), ..first], [Match(segment), ..second])
+          Ins(segment) -> ListComparison(first, [NoMatch(segment), ..second])
+          Del(segment) -> ListComparison([NoMatch(segment), ..first], second)
         }
-        StringComparison(..) -> comparison
       }
-    },
-  )
+      StringComparison(..) -> comparison
+    }
+  })
 }
 
 /// An adapter for the the `lcs` (longest common subsequence) algorithm.
@@ -145,35 +142,33 @@ pub fn lcs(first_sequence: List(a), second_sequence: List(a)) -> Comparison(a) {
     first_sequence
     |> list.drop(num_leading_matches)
     |> list.take(
-      list.length(first_sequence) - num_leading_matches - num_trailing_matches,
+      list.length(first_sequence)
+      - num_leading_matches
+      - num_trailing_matches,
     )
   let second_sequence_to_diff =
     second_sequence
     |> list.drop(num_leading_matches)
     |> list.take(
-      list.length(second_sequence) - num_leading_matches - num_trailing_matches,
+      list.length(second_sequence)
+      - num_leading_matches
+      - num_trailing_matches,
     )
 
   let diff_map =
     second_sequence_to_diff
-    |> list.index_fold(
-      map.new(),
-      fn(diff_map, item_second, index_second) {
-        first_sequence_to_diff
-        |> list.index_fold(
+    |> list.index_fold(dict.new(), fn(diff_map, item_second, index_second) {
+      first_sequence_to_diff
+      |> list.index_fold(diff_map, fn(diff_map, item_first, index_first) {
+        build_diff_map(
+          item_first,
+          index_first,
+          item_second,
+          index_second,
           diff_map,
-          fn(diff_map, item_first, index_first) {
-            build_diff_map(
-              item_first,
-              index_first,
-              item_second,
-              index_second,
-              diff_map,
-            )
-          },
         )
-      },
-    )
+      })
+    })
   let #(first_segments, second_segments) = case
     first_sequence_to_diff,
     second_sequence_to_diff
@@ -185,30 +180,24 @@ pub fn lcs(first_sequence: List(a), second_sequence: List(a)) -> Comparison(a) {
       let tracking =
         back_track(
           diff_map,
-          list.length(first_sequence_to_diff) - 1,
-          list.length(second_sequence_to_diff) - 1,
+          list.length(first_sequence_to_diff)
+          - 1,
+          list.length(second_sequence_to_diff)
+          - 1,
           [],
         )
-        |> map.from_list()
+        |> dict.from_list()
 
       let first_segments =
-        collect_matches(
-          tracking,
-          first_sequence_to_diff,
-          fn(key) {
-            let #(first, _) = key
-            first
-          },
-        )
+        collect_matches(tracking, first_sequence_to_diff, fn(key) {
+          let #(first, _) = key
+          first
+        })
       let second_segments =
-        collect_matches(
-          tracking,
-          second_sequence_to_diff,
-          fn(key) {
-            let #(_, second) = key
-            second
-          },
-        )
+        collect_matches(tracking, second_sequence_to_diff, fn(key) {
+          let #(_, second) = key
+          second
+        })
       #(first_segments, second_segments)
     }
   }
@@ -299,15 +288,19 @@ fn append_and_merge(
   |> list.reverse()
 }
 
-fn collect_matches(tracking, str: List(a), extract_fun) -> Segments(a) {
-  let matching_indexes =
-    map.keys(tracking)
+fn collect_matches(
+  tracking: Dict(#(Int, Int), b),
+  str: List(a),
+  extract_fun: fn(#(Int, Int)) -> Int,
+) -> Segments(a) {
+  let matching_indexes: set.Set(Int) =
+    dict.keys(tracking)
     |> list.map(extract_fun)
     |> set.from_list()
 
-  let matches =
+  let matches: List(Match(a)) =
     str
-    |> list.index_map(fn(index, item) {
+    |> list.index_map(fn(item: a, index: Int) {
       case set.contains(matching_indexes, index) {
         True -> Match(item)
         False -> NoMatch(item)
@@ -315,7 +308,7 @@ fn collect_matches(tracking, str: List(a), extract_fun) -> Segments(a) {
     })
 
   matches
-  |> list.chunk(fn(match) {
+  |> list.chunk(fn(match: Match(a)) {
     case match {
       Match(_) -> True
       NoMatch(_) -> False
@@ -323,26 +316,25 @@ fn collect_matches(tracking, str: List(a), extract_fun) -> Segments(a) {
   })
   |> list.map(fn(match_list) {
     case match_list {
+      [] -> Match([])
       [Match(_), ..] ->
-        Match(list.filter_map(
-          match_list,
-          fn(match) {
+        Match(
+          list.filter_map(match_list, fn(match) {
             case match {
               Match(item) -> Ok(item)
               NoMatch(_) -> Error(Nil)
             }
-          },
-        ))
+          }),
+        )
       [NoMatch(_), ..] ->
-        NoMatch(list.filter_map(
-          match_list,
-          fn(match) {
+        NoMatch(
+          list.filter_map(match_list, fn(match) {
             case match {
               NoMatch(item) -> Ok(item)
               Match(_) -> Error(Nil)
             }
-          },
-        ))
+          }),
+        )
     }
   })
 }
@@ -356,7 +348,7 @@ fn back_track(
   case first_index == 0 || second_index == 0 {
     True -> {
       let this_score =
-        map.get(diff_map, #(first_index, second_index))
+        dict.get(diff_map, #(first_index, second_index))
         |> result.unwrap(Score(0, None))
       case this_score {
         Score(_, Some(item)) -> [#(#(first_index, second_index), item), ..stack]
@@ -373,22 +365,20 @@ fn back_track(
     }
     False -> {
       let this_score =
-        map.get(diff_map, #(first_index, second_index))
+        dict.get(diff_map, #(first_index, second_index))
         |> result.unwrap(Score(0, None))
       case this_score {
         Score(_, Some(item)) ->
-          back_track(
-            diff_map,
-            first_index - 1,
-            second_index - 1,
-            [#(#(first_index, second_index), item), ..stack],
-          )
+          back_track(diff_map, first_index - 1, second_index - 1, [
+            #(#(first_index, second_index), item),
+            ..stack
+          ])
         Score(_, None) -> {
           let up =
-            map.get(diff_map, #(first_index, second_index - 1))
+            dict.get(diff_map, #(first_index, second_index - 1))
             |> result.unwrap(Score(0, None))
           let back =
-            map.get(diff_map, #(first_index - 1, second_index))
+            dict.get(diff_map, #(first_index - 1, second_index))
             |> result.unwrap(Score(0, None))
           case int.compare(up.value, back.value) {
             Gt -> back_track(diff_map, first_index, second_index - 1, stack)
@@ -418,15 +408,15 @@ fn build_diff_map(
   diff_map: DiffMap(a),
 ) -> DiffMap(a) {
   let prev_score =
-    map.get(diff_map, #(first_index - 1, second_index - 1))
+    dict.get(diff_map, #(first_index - 1, second_index - 1))
     |> result.unwrap(Score(0, None))
   let derived_score_up =
     diff_map
-    |> map.get(#(first_index, second_index - 1))
+    |> dict.get(#(first_index, second_index - 1))
     |> result.unwrap(Score(0, None))
   let derived_score_back =
     diff_map
-    |> map.get(#(first_index - 1, second_index))
+    |> dict.get(#(first_index - 1, second_index))
     |> result.unwrap(Score(0, None))
   let derived_score = int.max(derived_score_up.value, derived_score_back.value)
   let this_score = case first_item == second_item {
@@ -434,5 +424,5 @@ fn build_diff_map(
     False -> Score(derived_score, None)
   }
   diff_map
-  |> map.insert(#(first_index, second_index), this_score)
+  |> dict.insert(#(first_index, second_index), this_score)
 }
