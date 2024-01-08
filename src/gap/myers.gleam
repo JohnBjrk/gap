@@ -93,6 +93,7 @@ fn proceed_path(
         False -> #(move_down(path2), [path2, ..rest])
       }
     }
+    _, _, _ -> panic as "Unexpected case"
   }
 }
 
