@@ -62,66 +62,70 @@ pub fn compare_strings_test() {
       gap.myers,
     )
   comparison
-  |> should.equal(StringComparison(
-    [
-      Match(["a"]),
-      Match([" "]),
-      Match(["t"]),
-      Match(["e"]),
-      NoMatch(["s", "t"]),
-      Match([" ", "s", "t"]),
-      NoMatch(["i"]),
-      Match(["r"]),
-      Match(["n", "g", " ", "w", "i", "t", "h", " "]),
-      NoMatch(["s", "o"]),
-      Match(["m"]),
-      Match(["e", " ", "l", "e", "t", "t", "e", "r", "s"]),
-    ],
-    [
-      Match(["a"]),
-      NoMatch(["n", "d"]),
-      Match([" "]),
-      NoMatch(["a", "n", "o"]),
-      Match(["t"]),
-      NoMatch(["h"]),
-      Match(["e"]),
-      NoMatch(["r"]),
-      Match([" ", "s", "t"]),
-      Match(["r"]),
-      NoMatch(["i"]),
-      Match(["n", "g", " ", "w", "i", "t", "h", " "]),
-      Match(["m"]),
-      NoMatch(["o", "r"]),
-      Match(["e", " ", "l", "e", "t", "t", "e", "r", "s"]),
-    ],
-  ))
+  |> should.equal(
+    StringComparison(
+      [
+        Match(["a"]),
+        Match([" "]),
+        Match(["t"]),
+        Match(["e"]),
+        NoMatch(["s", "t"]),
+        Match([" ", "s", "t"]),
+        NoMatch(["i"]),
+        Match(["r"]),
+        Match(["n", "g", " ", "w", "i", "t", "h", " "]),
+        NoMatch(["s", "o"]),
+        Match(["m"]),
+        Match(["e", " ", "l", "e", "t", "t", "e", "r", "s"]),
+      ],
+      [
+        Match(["a"]),
+        NoMatch(["n", "d"]),
+        Match([" "]),
+        NoMatch(["a", "n", "o"]),
+        Match(["t"]),
+        NoMatch(["h"]),
+        Match(["e"]),
+        NoMatch(["r"]),
+        Match([" ", "s", "t"]),
+        Match(["r"]),
+        NoMatch(["i"]),
+        Match(["n", "g", " ", "w", "i", "t", "h", " "]),
+        Match(["m"]),
+        NoMatch(["o", "r"]),
+        Match(["e", " ", "l", "e", "t", "t", "e", "r", "s"]),
+      ],
+    ),
+  )
 
   compare_strings(
     "a long string with some small diffs",
     "a lon string with some snall diff",
   )
-  |> should.equal(StringComparison(
-    [
-      Match(["a", " ", "l", "o", "n"]),
-      NoMatch(["g"]),
-      Match([
-        " ", "s", "t", "r", "i", "n", "g", " ", "w", "i", "t", "h", " ", "s",
-        "o", "m", "e", " ", "s",
-      ]),
-      NoMatch(["m"]),
-      Match(["a", "l", "l", " ", "d", "i", "f", "f"]),
-      NoMatch(["s"]),
-    ],
-    [
-      Match(["a", " ", "l", "o", "n"]),
-      Match([
-        " ", "s", "t", "r", "i", "n", "g", " ", "w", "i", "t", "h", " ", "s",
-        "o", "m", "e", " ", "s",
-      ]),
-      NoMatch(["n"]),
-      Match(["a", "l", "l", " ", "d", "i", "f", "f"]),
-    ],
-  ))
+  |> should.equal(
+    StringComparison(
+      [
+        Match(["a", " ", "l", "o", "n"]),
+        NoMatch(["g"]),
+        Match([
+          " ", "s", "t", "r", "i", "n", "g", " ", "w", "i", "t", "h", " ", "s",
+          "o", "m", "e", " ", "s",
+        ]),
+        NoMatch(["m"]),
+        Match(["a", "l", "l", " ", "d", "i", "f", "f"]),
+        NoMatch(["s"]),
+      ],
+      [
+        Match(["a", " ", "l", "o", "n"]),
+        Match([
+          " ", "s", "t", "r", "i", "n", "g", " ", "w", "i", "t", "h", " ", "s",
+          "o", "m", "e", " ", "s",
+        ]),
+        NoMatch(["n"]),
+        Match(["a", "l", "l", " ", "d", "i", "f", "f"]),
+      ],
+    ),
+  )
 }
 
 pub fn compare_strings_lcs_test() {
@@ -130,98 +134,110 @@ pub fn compare_strings_lcs_test() {
     "and another string with more letters",
     gap.lcs,
   )
-  |> should.equal(StringComparison(
-    [
-      Match(["a", " ", "t", "e"]),
-      NoMatch(["s", "t"]),
-      Match([" ", "s", "t", "i"]),
-      NoMatch(["r"]),
-      Match(["n", "g", " ", "w", "i", "t", "h", " "]),
-      NoMatch(["s"]),
-      Match(["o"]),
-      NoMatch(["m"]),
-      Match(["e", " ", "l", "e", "t", "t", "e", "r", "s"]),
-    ],
-    [
-      Match(["a"]),
-      NoMatch(["n", "d"]),
-      Match([" "]),
-      NoMatch(["a", "n", "o"]),
-      Match(["t"]),
-      NoMatch(["h"]),
-      Match(["e"]),
-      NoMatch(["r"]),
-      Match([" ", "s", "t"]),
-      NoMatch(["r"]),
-      Match(["i", "n", "g", " ", "w", "i", "t", "h", " "]),
-      NoMatch(["m"]),
-      Match(["o"]),
-      NoMatch(["r"]),
-      Match(["e", " ", "l", "e", "t", "t", "e", "r", "s"]),
-    ],
-  ))
+  |> should.equal(
+    StringComparison(
+      [
+        Match(["a", " ", "t", "e"]),
+        NoMatch(["s", "t"]),
+        Match([" ", "s", "t", "i"]),
+        NoMatch(["r"]),
+        Match(["n", "g", " ", "w", "i", "t", "h", " "]),
+        NoMatch(["s"]),
+        Match(["o"]),
+        NoMatch(["m"]),
+        Match(["e", " ", "l", "e", "t", "t", "e", "r", "s"]),
+      ],
+      [
+        Match(["a"]),
+        NoMatch(["n", "d"]),
+        Match([" "]),
+        NoMatch(["a", "n", "o"]),
+        Match(["t"]),
+        NoMatch(["h"]),
+        Match(["e"]),
+        NoMatch(["r"]),
+        Match([" ", "s", "t"]),
+        NoMatch(["r"]),
+        Match(["i", "n", "g", " ", "w", "i", "t", "h", " "]),
+        NoMatch(["m"]),
+        Match(["o"]),
+        NoMatch(["r"]),
+        Match(["e", " ", "l", "e", "t", "t", "e", "r", "s"]),
+      ],
+    ),
+  )
 
   gap.compare_strings_with_algorithm(
     "a long string with some small diffs",
     "a lon string with some snall diff",
     gap.lcs,
   )
-  |> should.equal(StringComparison(
-    [
-      Match(["a", " ", "l", "o", "n"]),
-      NoMatch(["g"]),
-      Match([
-        " ", "s", "t", "r", "i", "n", "g", " ", "w", "i", "t", "h", " ", "s",
-        "o", "m", "e", " ", "s",
-      ]),
-      NoMatch(["m"]),
-      Match(["a", "l", "l", " ", "d", "i", "f", "f"]),
-      NoMatch(["s"]),
-    ],
-    [
-      Match([
-        "a", " ", "l", "o", "n", " ", "s", "t", "r", "i", "n", "g", " ", "w",
-        "i", "t", "h", " ", "s", "o", "m", "e", " ", "s",
-      ]),
-      NoMatch(["n"]),
-      Match(["a", "l", "l", " ", "d", "i", "f", "f"]),
-    ],
-  ))
+  |> should.equal(
+    StringComparison(
+      [
+        Match(["a", " ", "l", "o", "n"]),
+        NoMatch(["g"]),
+        Match([
+          " ", "s", "t", "r", "i", "n", "g", " ", "w", "i", "t", "h", " ", "s",
+          "o", "m", "e", " ", "s",
+        ]),
+        NoMatch(["m"]),
+        Match(["a", "l", "l", " ", "d", "i", "f", "f"]),
+        NoMatch(["s"]),
+      ],
+      [
+        Match([
+          "a", " ", "l", "o", "n", " ", "s", "t", "r", "i", "n", "g", " ", "w",
+          "i", "t", "h", " ", "s", "o", "m", "e", " ", "s",
+        ]),
+        NoMatch(["n"]),
+        Match(["a", "l", "l", " ", "d", "i", "f", "f"]),
+      ],
+    ),
+  )
 }
 
 pub fn compare_lists_test() {
   compare_lists([1, 2, 3, 4, 5], [1, 3, 4, 5, 6])
-  |> should.equal(ListComparison(
-    [Match([1]), NoMatch([2]), Match([3, 4, 5])],
-    [Match([1]), Match([3, 4, 5]), NoMatch([6])],
-  ))
+  |> should.equal(
+    ListComparison([Match([1]), NoMatch([2]), Match([3, 4, 5])], [
+      Match([1]),
+      Match([3, 4, 5]),
+      NoMatch([6]),
+    ]),
+  )
 }
 
 pub fn compare_lists_lcs_test() {
   gap.compare_lists_with_algorithm([1, 2, 3, 4, 5], [1, 3, 4, 5, 6], gap.lcs)
-  |> should.equal(ListComparison(
-    [Match([1]), NoMatch([2]), Match([3, 4, 5])],
-    [Match([1, 3, 4, 5]), NoMatch([6])],
-  ))
+  |> should.equal(
+    ListComparison([Match([1]), NoMatch([2]), Match([3, 4, 5])], [
+      Match([1, 3, 4, 5]),
+      NoMatch([6]),
+    ]),
+  )
 }
 
 pub fn compare_lists_custom_type_test() {
-  compare_lists(
-    [TestType("one", 1), TestType("two", 2), TestType("four", 4)],
-    [TestType("one", 1), TestType("three", 3), TestType("four", 4)],
+  compare_lists([TestType("one", 1), TestType("two", 2), TestType("four", 4)], [
+    TestType("one", 1),
+    TestType("three", 3),
+    TestType("four", 4),
+  ])
+  |> should.equal(
+    ListComparison(
+      [
+        Match([TestType("one", 1)]),
+        NoMatch([TestType("two", 2)]),
+        Match([TestType("four", 4)]),
+      ],
+      [
+        Match([TestType("one", 1)]),
+        NoMatch([TestType("three", 3)]),
+        Match([TestType("four", 4)]),
+      ],
+    ),
   )
-  |> should.equal(ListComparison(
-    [
-      Match([TestType("one", 1)]),
-      NoMatch([TestType("two", 2)]),
-      Match([TestType("four", 4)]),
-    ],
-    [
-      Match([TestType("one", 1)]),
-      NoMatch([TestType("three", 3)]),
-      Match([TestType("four", 4)]),
-    ],
-  ))
 }
 
 pub fn styled_comparison_test() {
@@ -244,10 +260,9 @@ pub fn styled_comparison_serializer_test() {
     fn(item) { "#" <> item <> "#" },
     no_highlight,
   )
-  |> serialize(mk_generic_serializer(
-    " :: ",
-    fn(all) { "--> " <> all <> " <--" },
-  ))
+  |> serialize(
+    mk_generic_serializer(" :: ", fn(all) { "--> " <> all <> " <--" }),
+  )
   |> to_styled_comparison()
   |> should.equal(StyledComparison(
     "--> 1 :: >2< :: 3 :: 4 :: 5 <--",
@@ -303,10 +318,9 @@ pub fn demo() {
       fn(item) { ansi.cyan(item) },
       no_highlight,
     )
-    |> serialize(mk_generic_serializer(
-      " and ",
-      fn(all) { "Comparison(" <> all <> ")" },
-    ))
+    |> serialize(
+      mk_generic_serializer(" and ", fn(all) { "Comparison(" <> all <> ")" }),
+    )
     |> to_styled_comparison()
   io.println(comparison.first)
   io.println(comparison.second)
@@ -361,10 +375,11 @@ pub fn demo() {
       fn(second) { second <> " was not found in other" },
       fn(matching) { matching <> " was found in other" },
     )
-    |> serialize(mk_generic_serializer(
-      ", and ",
-      fn(result) { "Comparing the lists gave the following result: " <> result },
-    ))
+    |> serialize(
+      mk_generic_serializer(", and ", fn(result) {
+        "Comparing the lists gave the following result: " <> result
+      }),
+    )
     |> to_styled_comparison()
   io.println(comparison.first)
   io.println(comparison.second)
@@ -382,19 +397,21 @@ pub fn demo() {
       ],
     )
     |> from_comparison()
-    |> highlight(
-      fn(first) { "+" <> first },
-      fn(second) { "-" <> second },
-      fn(matching) { " " <> matching },
-    )
+    |> highlight(fn(first) { "+" <> first }, fn(second) { "-" <> second }, fn(
+      matching,
+    ) {
+      " " <> matching
+    })
     |> serialize(fn(part) {
       case part {
         Part(acc, lines, highlight) ->
-          acc <> {
+          acc
+          <> {
             lines
             |> list.map(fn(line) { highlight(line) })
             |> string.join("\n")
-          } <> "\n"
+          }
+          <> "\n"
         All(result) -> result
       }
     })
