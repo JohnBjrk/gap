@@ -160,7 +160,8 @@ pub fn no_highlight(string: String) -> String {
 fn string_serializer(part: Part(String)) -> String {
   case part {
     Part(acc, sequence, highlight) ->
-      acc <> {
+      acc
+      <> {
         sequence
         |> list.map(highlight)
         |> string.join("")
@@ -183,7 +184,9 @@ pub fn mk_generic_serializer(separator: String, around: fn(String) -> String) {
           "" -> ""
           _ -> separator
         }
-        acc <> segment_separator <> {
+        acc
+        <> segment_separator
+        <> {
           sequence
           |> list.map(string.inspect)
           |> list.map(highlight)
@@ -205,29 +208,21 @@ fn to_strings(
 ) -> StyledComparison {
   let first_styled =
     first
-    |> list.fold(
-      "",
-      fn(str, match) {
-        case match {
-          Match(item) -> serializer(Part(str, item, no_highlight))
-          NoMatch(item) -> serializer(Part(str, item, first_highlight))
-        }
-      },
-    )
+    |> list.fold("", fn(str, match) {
+      case match {
+        Match(item) -> serializer(Part(str, item, no_highlight))
+        NoMatch(item) -> serializer(Part(str, item, first_highlight))
+      }
+    })
   let second_styled =
     second
-    |> list.fold(
-      "",
-      fn(str, match) {
-        case match {
-          Match(item) -> serializer(Part(str, item, no_highlight))
-          NoMatch(item) -> serializer(Part(str, item, second_highlight))
-        }
-      },
-    )
+    |> list.fold("", fn(str, match) {
+      case match {
+        Match(item) -> serializer(Part(str, item, no_highlight))
+        NoMatch(item) -> serializer(Part(str, item, second_highlight))
+      }
+    })
 
-  StyledComparison(
-    serializer(All(first_styled)),
-    serializer(All(second_styled)),
+  StyledComparison(serializer(All(first_styled)), serializer(All(second_styled)),
   )
 }
