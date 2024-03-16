@@ -38,6 +38,7 @@ runs:
           echo "expected a tag name 'v$version'"
           exit 1
         fi
+      shell: bash
     - run: gleam publish -y
       shell: bash
       env:
