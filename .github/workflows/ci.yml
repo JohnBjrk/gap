@@ -15,10 +15,12 @@ jobs:
       gleam-version: ${{ steps.gleam-version.outputs.gleam-version }}
     steps:
       - uses: actions/checkout@v3.2.0
-      - uses: johnbjrk/gleam-version@v1
+      - name: Get Gleam version
         id: gleam-version
-        with:
-          fallback-version: ${{ vars.GLEAM_VERSION }}
+        run:
+          GLEAM_VERSION = "$(cat .tool-versions | sed -E 's/gleam (.+)/\1/')"
+          echo "gleam-version=$GLEAM_VERSION" >> $GITHUB_OUTPUT
+        id: gleam-version
   test:
     runs-on: ubuntu-latest
     needs: get_version
