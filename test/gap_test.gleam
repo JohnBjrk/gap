@@ -48,9 +48,9 @@ pub fn performance_test() {
   io.println("Comparing strings")
   compare_strings(
     list1
-    |> string.join(""),
+      |> string.join(""),
     list2
-    |> string.join(""),
+      |> string.join(""),
   )
 }
 
@@ -397,11 +397,11 @@ pub fn demo() {
       ],
     )
     |> from_comparison()
-    |> highlight(fn(first) { "+" <> first }, fn(second) { "-" <> second }, fn(
-      matching,
-    ) {
-      " " <> matching
-    })
+    |> highlight(
+      fn(first) { "+" <> first },
+      fn(second) { "-" <> second },
+      fn(matching) { " " <> matching },
+    )
     |> serialize(fn(part) {
       case part {
         Part(acc, lines, highlight) ->

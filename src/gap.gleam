@@ -105,22 +105,25 @@ pub fn myers(first_sequence: List(a), second_sequence: List(a)) -> Comparison(a)
   let edits = myers.difference(first_sequence, second_sequence)
   edits
   |> list.reverse()
-  |> list.fold(ListComparison([], []), fn(
-    comparison: Comparison(a),
-    edit: Edit(a),
-  ) {
-    case comparison {
-      ListComparison(first, second) -> {
-        case edit {
-          MyerEq(segment) ->
-            ListComparison([Match(segment), ..first], [Match(segment), ..second])
-          Ins(segment) -> ListComparison(first, [NoMatch(segment), ..second])
-          Del(segment) -> ListComparison([NoMatch(segment), ..first], second)
+  |> list.fold(
+    ListComparison([], []),
+    fn(comparison: Comparison(a), edit: Edit(a)) {
+      case comparison {
+        ListComparison(first, second) -> {
+          case edit {
+            MyerEq(segment) ->
+              ListComparison([Match(segment), ..first], [
+                Match(segment),
+                ..second
+              ])
+            Ins(segment) -> ListComparison(first, [NoMatch(segment), ..second])
+            Del(segment) -> ListComparison([NoMatch(segment), ..first], second)
+          }
         }
+        StringComparison(..) -> comparison
       }
-      StringComparison(..) -> comparison
-    }
-  })
+    },
+  )
 }
 
 /// An adapter for the the `lcs` (longest common subsequence) algorithm.
@@ -142,17 +145,13 @@ pub fn lcs(first_sequence: List(a), second_sequence: List(a)) -> Comparison(a) {
     first_sequence
     |> list.drop(num_leading_matches)
     |> list.take(
-      list.length(first_sequence)
-      - num_leading_matches
-      - num_trailing_matches,
+      list.length(first_sequence) - num_leading_matches - num_trailing_matches,
     )
   let second_sequence_to_diff =
     second_sequence
     |> list.drop(num_leading_matches)
     |> list.take(
-      list.length(second_sequence)
-      - num_leading_matches
-      - num_trailing_matches,
+      list.length(second_sequence) - num_leading_matches - num_trailing_matches,
     )
 
   let diff_map =
@@ -180,10 +179,8 @@ pub fn lcs(first_sequence: List(a), second_sequence: List(a)) -> Comparison(a) {
       let tracking =
         back_track(
           diff_map,
-          list.length(first_sequence_to_diff)
-          - 1,
-          list.length(second_sequence_to_diff)
-          - 1,
+          list.length(first_sequence_to_diff) - 1,
+          list.length(second_sequence_to_diff) - 1,
           [],
         )
         |> dict.from_list()
@@ -209,23 +206,23 @@ pub fn lcs(first_sequence: List(a), second_sequence: List(a)) -> Comparison(a) {
     [], [] -> #(first_segments, second_segments)
     [], trailing_matches -> #(
       first_segments
-      |> append_and_merge(Match(trailing_matches)),
+        |> append_and_merge(Match(trailing_matches)),
       second_segments
-      |> append_and_merge(Match(trailing_matches)),
+        |> append_and_merge(Match(trailing_matches)),
     )
     leading_matches, [] -> #(
       first_segments
-      |> prepend_and_merge(Match(leading_matches)),
+        |> prepend_and_merge(Match(leading_matches)),
       second_segments
-      |> prepend_and_merge(Match(leading_matches)),
+        |> prepend_and_merge(Match(leading_matches)),
     )
     leading_matches, trailing_matches -> #(
       first_segments
-      |> prepend_and_merge(Match(leading_matches))
-      |> append_and_merge(Match(trailing_matches)),
+        |> prepend_and_merge(Match(leading_matches))
+        |> append_and_merge(Match(trailing_matches)),
       second_segments
-      |> prepend_and_merge(Match(leading_matches))
-      |> append_and_merge(Match(trailing_matches)),
+        |> prepend_and_merge(Match(leading_matches))
+        |> append_and_merge(Match(trailing_matches)),
     )
   }
 

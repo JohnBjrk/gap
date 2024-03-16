@@ -223,6 +223,8 @@ fn to_strings(
       }
     })
 
-  StyledComparison(serializer(All(first_styled)), serializer(All(second_styled)),
+  StyledComparison(
+    serializer(All(first_styled)),
+    serializer(All(second_styled)),
   )
 }
