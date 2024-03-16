@@ -17,7 +17,7 @@ jobs:
       - uses: actions/checkout@v3.2.0
       - name: Get Gleam version
         id: gleam-version
-        run:
+        run: |
           GLEAM_VERSION="$(cat .tool-versions | sed -E 's/gleam (.+)/\1/')"
           echo "Gleam version $GLEAM_VERSION"
           echo "gleam-version=$GLEAM_VERSION" >> $GITHUB_OUTPUT
