@@ -18,7 +18,8 @@ jobs:
       - name: Get Gleam version
         id: gleam-version
         run:
-          GLEAM_VERSION="$(cat .tool-versions | sed -E 's/gleam (.+)/\1/')"
+          export GLEAM_VERSION="$(cat .tool-versions | sed -E 's/gleam (.+)/\1/')"
+          echo "Gleam version $GLEAM_VERSION"
           echo "gleam-version=$GLEAM_VERSION" >> $GITHUB_OUTPUT
   test:
     runs-on: ubuntu-latest
